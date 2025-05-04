@@ -2,7 +2,7 @@ spring:
   application:
     name: auth-jwt
   datasource:
-    url: jdbc:postgresql://dpg-d0bp8hidbo4c73d07ovg-a.singapore-postgres.render.com:5432/auth_jwt
+    url: jdbc:postgresql://dpg-d0bp8hidbo4c73d07ovg-a.singapore-postgres.render.com:5432/postgresdb
     password: auth_jwt_lp1h_user
     username: qbU7dAtD1Og3OSDTx2qiURfDJzS4aWk4
     driver-class-name: org.postgresql.Driver
