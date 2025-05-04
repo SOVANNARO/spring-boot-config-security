@@ -1,3 +1,60 @@
+### Project Structure
+
+```java
+spring-boot-config-security/
+│
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── org/
+│   │   │       └── tutorials/
+│   │   │           └── springbootconfigsecurity/
+│   │   │               ├── config/
+│   │   │               │   ├── ApplicationConfig.java
+│   │   │               │   ├── SecurityConfiguration.java
+│   │   │               │   └── OpenApiConfig.java
+│   │   │               ├── controller/
+│   │   │               │   ├── AuthenticationController.java
+│   │   │               │   └── DemoController.java
+│   │   │               ├── dto/
+│   │   │               │   ├── AuthenticationRequest.java
+│   │   │               │   ├── AuthenticationResponse.java
+│   │   │               │   ├── RegisterRequest.java
+│   │   │               │   └── RefreshTokenRequest.java
+│   │   │               ├── entity/
+│   │   │               │   ├── Role.java
+│   │   │               │   └── User.java
+│   │   │               ├── filter/
+│   │   │               │   └── JwtAuthenticationFilter.java
+│   │   │               ├── repository/
+│   │   │               │   └── UserRepository.java
+│   │   │               ├── service/
+│   │   │               │   ├── AuthenticationService.java
+│   │   │               │   ├── JwtService.java
+│   │   │               │   └── TokenBlacklistService.java
+│   │   │               └── SpringBootConfigSecurityApplication.java
+│   │   └── resources/
+│   │       └── application.properties
+│   │
+│   └── test/
+│       └── java/
+│           └── org/
+│               └── tutorials/
+│                   └── springbootconfigsecurity/
+│                       ├── controller/
+│                       │   ├── AuthenticationControllerTest.java
+│                       │   └── DemoControllerTest.java
+│                       ├── service/
+│                       │   └── AuthenticationServiceTest.java
+│                       └── SpringBootConfigSecurityApplicationTests.java
+│
+├── .gitignore
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+└── README.md
+```
+
 ### DB Diagram PlantUML:
 ```java
 @startuml
