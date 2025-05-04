@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 ),
                 @Server(
                         description = "PROD ENV",
-                        url = "https://yourwebsite.com"
+                        url = "https://spring-boot-config-security.onrender.com"
                 )
         },
         security = {
