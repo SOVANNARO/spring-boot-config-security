@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         url = "https://yourwebsite.com"
                 ),
                 description = "OpenApi documentation for Spring Security",
-                title = "OpenApi specification - Naro",
+                title = "JWT Auth with Spring Boot - Naro",
                 version = "1.0",
                 license = @License(
                         name = "Licence name",
