@@ -58,67 +58,95 @@ spring-boot-config-security/
 ### DB Diagram PlantUML:
 ```java
 @startuml
-!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
-!define PK(x) <u>x</u>
-!define FK(x) <i>x</i>
+!define RECTANGLE class
 
-TABLE(User, "User\n(User table)") {
-    PK(id) : Integer
-    firstname : String
-    lastname : String
-    email : String
-    password : String
-    role : Enum
-}
-@enduml
-```
+actor User
+participant "AuthenticationController" as AC
+participant "AuthenticationService" as AS
+participant "UserRepository" as UR
+participant "RoleRepository" as RR
+participant "JwtService" as JS
+participant "UserDetailsService" as UDS
+participant "PasswordEncoder" as PE
+participant "AuthenticationManager" as AM
+participant "SecurityFilterChain" as SFC
+participant "JwtAuthenticationFilter" as JAF
+participant "SecuredResource" as SR
+database "Database" as DB
 
-### workflow diagram using PlantUML
-```java
-@startuml
-actor Client
-participant AuthenticationController
-participant AuthenticationService
-participant UserRepository
-participant JwtService
-participant AuthenticationManager
-participant JwtAuthenticationFilter
-participant SecurityContext
-participant ProtectedResource
+title Full Flow of Spring Boot Security Project
 
 == User Registration ==
-Client -> AuthenticationController : POST /api/v1/auth/register
-AuthenticationController -> AuthenticationService : register()
-AuthenticationService -> UserRepository : save(User)
-AuthenticationService -> JwtService : generateToken()
-AuthenticationController --> Client : Return Token
+User -> AC: POST /api/v1/auth/register
+AC -> AS: register(RegisterRequest)
+AS -> UR: findByEmail(email)
+UR --> AS: User (if exists)
+AS -> PE: encode(password)
+AS -> UR: save(new User)
+UR -> DB: Save user
+DB --> UR: User saved
+AS -> JS: generateToken(user)
+JS --> AS: JWT token
+AS -> JS: generateRefreshToken(user)
+JS --> AS: Refresh token
+AS --> AC: AuthenticationResponse
+AC --> User: 200 OK (AuthenticationResponse)
 
-== User Authentication ==
-Client -> AuthenticationController : POST /api/v1/auth/authenticate
-AuthenticationController -> AuthenticationService : authenticate()
-AuthenticationService -> AuthenticationManager : authenticate()
-AuthenticationService -> JwtService : generateToken()
-AuthenticationController --> Client : Return Token
+== User Login ==
+User -> AC: POST /api/v1/auth/login
+AC -> AS: authenticate(AuthenticationRequest)
+AS -> AM: authenticate(email, password)
+AM -> UDS: loadUserByUsername(email)
+UDS -> UR: findByEmail(email)
+UR --> UDS: User
+UDS --> AM: UserDetails
+AM -> PE: matches(rawPassword, encodedPassword)
+PE --> AM: boolean (password match)
+AM --> AS: Authentication object
+AS -> JS: generateToken(user)
+JS --> AS: JWT token
+AS -> JS: generateRefreshToken(user)
+JS --> AS: Refresh token
+AS --> AC: AuthenticationResponse
+AC --> User: 200 OK (AuthenticationResponse)
 
-== Accessing Protected Resources ==
-Client -> JwtAuthenticationFilter : Request with JWT in Header
-JwtAuthenticationFilter -> JwtService : validateToken()
-JwtAuthenticationFilter -> SecurityContext : setAuthentication()
-JwtAuthenticationFilter -> ProtectedResource : forward request
-ProtectedResource --> Client : Response
+== Token Refresh ==
+User -> AC: POST /api/v1/auth/refresh
+AC -> AS: refreshToken(RefreshTokenRequest)
+AS -> JS: validateRefreshToken(token)
+JS --> AS: boolean (token valid)
+AS -> JS: extractUsername(token)
+JS --> AS: username
+AS -> UR: findByEmail(username)
+UR --> AS: User
+AS -> JS: generateToken(user)
+JS --> AS: New JWT token
+AS --> AC: New AuthenticationResponse
+AC --> User: 200 OK (New AuthenticationResponse)
 
-== Token Refresh (if implemented) ==
-Client -> AuthenticationController : POST /api/v1/auth/refresh
-AuthenticationController -> AuthenticationService : refreshToken()
-AuthenticationService -> JwtService : validateRefreshToken()
-AuthenticationService -> JwtService : generateNewAccessToken()
-AuthenticationController --> Client : Return New Access Token
+== User Logout ==
+User -> AC: POST /api/v1/auth/logout
+AC -> AS: logout(token)
+AS -> JS: invalidateToken(token)
+JS -> DB: Invalidate token
+DB --> JS: Token invalidated
+AS --> AC: Logout successful
+AC --> User: 200 OK "Logged out successfully"
 
-== Logout (if implemented) ==
-Client -> AuthenticationController : POST /api/v1/auth/logout
-AuthenticationController -> AuthenticationService : logout()
-AuthenticationService -> "TokenBlacklist" : addToBlacklist()
-AuthenticationController --> Client : Logout Confirmation
+== Accessing Secured Resource ==
+User -> SFC: Request with JWT
+SFC -> JAF: doFilterInternal(request, response, filterChain)
+JAF -> JS: extractUsername(token)
+JS --> JAF: username
+JAF -> UDS: loadUserByUsername(username)
+UDS -> UR: findByEmail(username)
+UR --> UDS: User
+UDS --> JAF: UserDetails
+JAF -> JS: isTokenValid(token, userDetails)
+JS --> JAF: boolean (token valid)
+JAF -> SFC: Set Authentication in SecurityContext
+SFC -> SR: Process request
+SR --> User: Protected resource or 403 Forbidden
 
 @enduml
 ```
